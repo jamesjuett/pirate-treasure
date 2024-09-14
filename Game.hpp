@@ -1,3 +1,6 @@
+#ifndef GAME_HPP
+#define GAME_HPP
+
 #include <vector>
 #include <iostream>
 #include <utility>
@@ -24,9 +27,12 @@ enum CellState {
   FLAG = 2
 };
 
+// "Plain Old Data" (POD)
 struct Cell {
   Item item;
   CellState state;
+  int x;
+  int y;
 };
 
 struct Game {
@@ -53,11 +59,13 @@ int Game_num_traps(const Game *game);
 bool Game_in_bounds(const Game* game, int r, int c);
 
 // REQUIRES: 0 <= r < Game_height(game) && 0 <= c < Game_width(game)
-Cell * Game_get(Game* game, int r, int c);
 const Cell * Game_get(const Game* game, int r, int c);
+Cell * Game_get(Game* game, int r, int c);
+
+std::vector<Cell *> Game_neighbors(Game* game, Cell *cell, bool include_diagonals);
 
 // REQUIRES: 0 <= r < Game_height(game) && 0 <= c < Game_width(game)
-void Game_set(Game* game, int r, int c, Cell cell);
+// void Game_set(Game* game, int r, int c, Cell cell);
 
 // EFFECTS: Reveals the cell at (r, c), if it was not already revealed.
 //          Otherwise, does nothing. If a revealed cell is empty, all
@@ -66,4 +74,6 @@ void Game_reveal(Game* game, int r, int c);
 
 void Game_mark(Game* game, int r, int c);
 
-void Game_print(const Game* game, bool show_hidden);
+bool Game_is_game_over(const Game* game);
+
+#endif
