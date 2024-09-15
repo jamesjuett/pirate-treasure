@@ -7,28 +7,38 @@
 #include <thread>
 #include <iomanip>
 
-void Game_place_items(Game *game, int n, Item item);
+
+//////////////////////////////////////////////////////////////////////////
+// Declarations for "private" Game ADT functions. Only used as helpers  //
+// internally and not available as part of the "public" Game interface, //
+// because they are not declared in the .hpp header file.               //
+//////////////////////////////////////////////////////////////////////////
+void place_items(Game *game, int n, Item item);
 int count_items(Game *game, Item item);
 void check_invariants(Game *game);
-void Game_number_cells(Game *game);
-int Game_count_adjacent_items(const Game *game, const Cell *cell, Item item);
+void number_cells(Game *game);
+int count_adjacent_items(Game *game, Cell *cell, Item item);
+std::vector<Cell *> Game_neighbors(Game* game, Cell *cell);
+
+// Private version allows modification of cells via returned pointer.
+Cell * Game_cell(Game *game, int x, int y);
 
 
-bool Item_is_number(Item item) {
-  return EMPTY <= item && item <= EIGHT;
-}
+
+/////////////////////////////////////////////////////////
+// Definitions (implementations) of Game ADT Functions //
+/////////////////////////////////////////////////////////
+
 
 void Game_init(Game* game, int width, int height, int num_treasures, int num_traps) {
   game->width = width;
   game->height = height;
   game->cells = std::vector<std::vector<Cell>>(
-    width, std::vector<Cell>(height, {EMPTY, HIDDEN})
+    width, std::vector<Cell>(height, Cell{})
   );
   for(int x = 0; x < width; x++) {
     for(int y = 0; y < height; y++) {
-      Cell *cell = &game->cells[x][y];
-      cell->x = x;
-      cell->y = y;
+      game->cells[x][y] = {x, y, EMPTY, HIDDEN, false, 0};
     }
   }
 
@@ -36,19 +46,136 @@ void Game_init(Game* game, int width, int height, int num_treasures, int num_tra
   game->num_traps = num_traps;
   game->game_over = false;
 
-  Game_place_items(game, num_treasures, TREASURE);
-  Game_place_items(game, num_traps, TRAP);
-  Game_number_cells(game);
+  place_items(game, num_treasures, TREASURE);
+  place_items(game, num_traps, TRAP);
+  number_cells(game);
 
   check_invariants(game);
 }
 
-void Game_place_items(Game *game, int n, Item item) {
+void Game_init(Game *game, std::istream &is) {
+  is >> game->width;
+  is >> game->height;
+  game->cells = std::vector<std::vector<Cell>>(
+    game->width, std::vector<Cell>(game->height, Cell{})
+  );
+  for(int x = 0; x < game->width; ++x) {
+    for(int y = 0; y < game->height; ++y) {
+      is >> game->cells[x][y];
+    }
+  }
+}
+
+void Game_save(Game *game, std::ostream &out) {
+  out << game->width;
+  out << game->height;
+  for(int x = 0; x < game->width; ++x) {
+    for(int y = 0; y < game->height; ++y) {
+      out << game->cells[x][y];
+    }
+  }
+}
+
+int Game_width(const Game *game) {
+  return game->width;
+}
+
+int Game_height(const Game *game) {
+  return game->height;
+}
+
+int Game_num_treasures(const Game *game) {
+  return game->num_treasures;
+}
+
+int Game_num_traps(const Game *game) {
+  return game->num_traps;
+}
+
+bool Game_in_bounds(const Game* game, int x, int y) {
+  return 0 <= x && x < game->width && 0 <= y && y < game->height;
+}
+
+bool Game_is_over(const Game *game) {
+  return game->game_over;
+}
+
+Cell * Game_cell(Game* game, int x, int y) {
+  assert(Game_in_bounds(game, x, y));
+  return &game->cells[x][y];
+}
+
+const Cell * Game_cell(const Game* game, int x, int y) {
+  assert(Game_in_bounds(game, x, y));
+  return &game->cells[x][y];
+}
+
+void Game_reveal(Game* game, int x, int y) {
+
+  Cell *cell = Game_cell(game, x, y);
+
+  // do nothing if already revealed
+  if (cell->state == REVEALED) {
+    return;
+  }
+
+  cell->state = REVEALED;
+
+  if (cell->item == TRAP) {
+    game->game_over = true;
+    return;
+  }
+  
+  if (cell->item == TREASURE) {
+    ++game->treasures_found;
+  }
+
+  // If an empty or treasure cell is revealed and has no adjacent traps,
+  // reveal all adjacent empty or treasure cells as well.
+  if (cell->num_adjacent_traps == 0) {
+    for(Cell *neighbor : Game_neighbors(game, cell)) {
+      if (neighbor->state != REVEALED && (neighbor->item == EMPTY || neighbor->item == TREASURE)) {
+        Game_reveal(game, neighbor->x, neighbor->y);
+      }
+    }
+  }
+  
+}
+
+void Game_toggle_flag(Game* game, int x, int y) {
+  Cell *cell = Game_cell(game, x, y);
+  if (cell->state == HIDDEN) {
+    cell->state = FLAG;
+  }
+  else if (cell->state == FLAG) {
+    cell->state = HIDDEN;
+  }
+  // else do nothing if it's REVEALED
+}
+
+std::vector<Cell *> Game_neighbors(Game* game, Cell *cell) {
+  std::vector<Cell *> neighbors;
+  for(int dx = -1; dx <= 1; ++dx) {
+    for(int dy = -1; dy <= 1; ++dy) {
+      int nx = cell->x + dx;
+      int ny = cell->y + dy;
+      if (Game_in_bounds(game, nx, ny)) {
+        Cell *neighbor = Game_cell(game, nx, ny);
+        if (neighbor != cell) { // don't include self
+          neighbors.push_back(neighbor);
+        }
+      }
+    } 
+  }
+  return neighbors;
+}
+
+void place_items(Game *game, int n, Item item) {
   int num_placed = 0;
   while(num_placed < n) {
     int x = rand() % game->width;
     int y = rand() % game->height;
-    Cell *cell = Game_get(game, x, y);
+    Cell *cell = Game_cell(game, x, y);
     if(cell->item == EMPTY) {
       cell->item = item;
       ++num_placed;
@@ -56,19 +183,13 @@ void Game_place_items(Game *game, int n, Item item) {
   }
 }
 
-void Game_number_cells(Game *game) {
-  
+void number_cells(Game *game) {
   for(int x = 0; x < game->width; x++) {
     for(int y = 0; y < game->height; y++) {
-      Cell *cell = Game_get(game, x, y);
-      if(cell->item == EMPTY) {
-        int n_traps = Game_count_adjacent_items(game, cell, TRAP);
-        assert(0 <= n_traps && n_traps <= 8);
-        if (n_traps != 0) {
-          cell->item =  static_cast<Item>(n_traps);
-        }
-        // else leave EMPTY
-      }
+      Cell *cell = Game_cell(game, x, y);
+      int n_traps = count_adjacent_items(game, cell, TRAP);
+      assert(0 <= n_traps && n_traps <= 8);
+      cell->num_adjacent_traps = n_traps;
     }
   }
 }
@@ -77,7 +198,7 @@ int count_items(Game *game, Item item) {
   int count = 0;
   for(int x = 0; x < game->width; x++) {
     for(int y = 0; y < game->height; y++) {
-      if(Game_get(game, x, y)->item == item) {
+      if(Game_cell(game, x, y)->item == item) {
         ++count;
       }
     }
@@ -95,121 +216,29 @@ void check_invariants(Game *game) {
   assert(count_items(game, TRAP) == game->num_traps);
 }
 
-int Game_width(const Game *game) {
-  return game->width;
-}
-
-int Game_height(const Game *game) {
-  return game->height;
-}
-
-bool Game_in_bounds(const Game* game, int x, int y) {
-  return 0 <= x && x < game->width && 0 <= y && y < game->height;
-}
-
-int Game_num_treasures(const Game *game) {
-  return game->num_treasures;
-}
-
-int Game_num_traps(const Game *game) {
-  return game->num_traps;
-}
-
-Cell * Game_get(Game* game, int x, int y) {
-  assert(Game_in_bounds(game, x, y));
-  return &game->cells[x][y];
-}
-
-const Cell * Game_get(const Game* game, int x, int y) {
-  assert(Game_in_bounds(game, x, y));
-  return &game->cells[x][y];
-}
-
-bool Game_is_game_over(const Game *game) {
-  return game->game_over;
-}
-
-const std::vector<std::pair<int,int>> NEIGHBOR_OFFSETS = {
-  {-1, 0}, // NSEW
-  {1, 0},
-  {0, -1},
-  {0, 1},
-  {-1, -1}, // diagonals
-  {-1, 1},
-  {1, -1},
-  {1, 1},
-};
-
-std::vector<Cell *> Game_neighbors(Game* game, Cell *cell, bool include_diagonals) {
-  std::vector<Cell *> neighbors;
-  for(int i = 0; i < (include_diagonals ? 8 : 4); ++i) {
-    int dx = NEIGHBOR_OFFSETS[i].first;
-    int dy = NEIGHBOR_OFFSETS[i].second;
-    if(Game_in_bounds(game, cell->x + dx, cell->y + dy)) {
-      neighbors.push_back(Game_get(game, cell->x + dx, cell->y + dy));
-    }
-  }
-  return neighbors;
-}
-
-std::vector<const Cell *> Game_neighbors(const Game* game, const Cell *cell, bool include_diagonals) {
-  std::vector<const Cell *> neighbors;
-  for(int i = 0; i < (include_diagonals ? 8 : 4); ++i) {
-    int dx = NEIGHBOR_OFFSETS[i].first;
-    int dy = NEIGHBOR_OFFSETS[i].second;
-    if(Game_in_bounds(game, cell->x + dx, cell->y + dy)) {
-      neighbors.push_back(Game_get(game, cell->x + dx, cell->y + dy));
-    }
-  }
-  return neighbors;
-}
-
-void Game_reveal(Game* game, int x, int y) {
-
-  Cell *cell = Game_get(game, x, y);
-
-  // do nothing if already revealed
-  if (cell->state == REVEALED) {
-    return;
-  }
-
-  cell->state = REVEALED;
-  // Game_print(game, false);
-  // std::this_thread::sleep_for(std::chrono::milliseconds(20));
-
-  if (cell->item == TRAP) {
-    game->game_over = true;
-  }
-  else if (cell->item == TREASURE) {
-    ++game->treasures_found;
-  }
-  else if (cell->item == EMPTY) {
-    for(Cell *neighbor : Game_neighbors(game, cell, true)) {
-      if (neighbor->state != REVEALED && Item_is_number(neighbor->item)) {
-        Game_reveal(game, neighbor->x, neighbor->y);
-      }
-    }
-  }
-}
-
-void Game_mark(Game* game, int x, int y) {
-  Cell *cell = Game_get(game, x, y);
-  if (cell->state == HIDDEN) {
-    cell->state = FLAG;
-  }
-  else if (cell->state == FLAG) {
-    cell->state = HIDDEN;
-  }
-
-  // do nothing if it's REVEALED
-}
-
-int Game_count_adjacent_items(const Game *game, const Cell *cell, Item item) {
+int count_adjacent_items(Game *game, Cell *cell, Item item) {
   int count = 0;
-  for(const Cell *neighbor : Game_neighbors(game, cell, true)) {
+  for(const Cell *neighbor : Game_neighbors(game, cell)) {
     if(neighbor->item == item) {
       ++count;
     }
   }
   return count;
+}
+
+///////////////////////////////////////////
+// Definitions of Cell stream operations //
+///////////////////////////////////////////
+
+std::ostream &operator<<(std::ostream &out, const Cell &cell) {
+  out << cell.x << cell.y << cell.item << cell.state << cell.has_flag << cell.num_adjacent_traps;
+  return out;
+}
+
+std::istream &operator>>(std::istream &in, Cell &cell) {
+  in >> cell.x >> cell.y;
+  int item; in >> item; cell.item = static_cast<Item>(item);
+  int state; in >> state; cell.state = static_cast<CellState>(state);
+  in >> cell.has_flag;
+  in >> cell.num_adjacent_traps;
 }

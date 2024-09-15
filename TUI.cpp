@@ -24,9 +24,11 @@ void TUI_init(TUI *tui, Game *game) {
   tui->cursor_y = Game_height(tui->game) / 2;
   TUI_init_curses(tui);
 }
-
-constexpr int HIDDEN_COLOR = 2 + TRAP;
-constexpr int FLAG_COLOR = 3 + TRAP;
+constexpr int COLOR_TREASURE = 9;
+constexpr int COLOR_TRAP = 10;
+constexpr int COLOR_HIDDEN = 11;
+constexpr int COLOR_FLAG = 12;
+constexpr int COLOR_EMPTY = 13;
 
 void TUI_init_curses(TUI *tui) {
   initscr();
@@ -36,19 +38,19 @@ void TUI_init_curses(TUI *tui) {
   start_color();
 
   // Initialize colors for each item in Item enum
-  init_pair(1+EMPTY, COLOR_WHITE, COLOR_BLACK);
-  init_pair(1+ONE, COLOR_BLUE, COLOR_BLACK);
-  init_pair(1+TWO, COLOR_CYAN, COLOR_BLACK);
-  init_pair(1+THREE, COLOR_GREEN, COLOR_BLACK);
-  init_pair(1+FOUR, COLOR_YELLOW, COLOR_BLACK);
-  init_pair(1+FIVE, COLOR_RED, COLOR_BLACK);
-  init_pair(1+SIX, COLOR_RED, COLOR_BLACK);
-  init_pair(1+SEVEN, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(1+EIGHT, COLOR_MAGENTA, COLOR_BLACK);
-  init_pair(1+TREASURE, COLOR_WHITE, COLOR_YELLOW);
-  init_pair(1+TRAP, COLOR_WHITE, COLOR_RED);
-  init_pair(HIDDEN_COLOR, COLOR_BLACK, COLOR_WHITE);
-  init_pair(FLAG_COLOR, COLOR_RED, COLOR_WHITE);
+  init_pair(1, COLOR_BLUE, COLOR_BLACK);
+  init_pair(2, COLOR_CYAN, COLOR_BLACK);
+  init_pair(3, COLOR_GREEN, COLOR_BLACK);
+  init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(5, COLOR_RED, COLOR_BLACK);
+  init_pair(6, COLOR_RED, COLOR_BLACK);
+  init_pair(7, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(8, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(COLOR_TREASURE, COLOR_WHITE, COLOR_YELLOW);
+  init_pair(COLOR_TRAP, COLOR_WHITE, COLOR_RED);
+  init_pair(COLOR_HIDDEN, COLOR_BLACK, COLOR_WHITE);
+  init_pair(COLOR_FLAG, COLOR_RED, COLOR_WHITE);
+  init_pair(COLOR_EMPTY, COLOR_WHITE, COLOR_BLACK);
   
   // board takes up everything except the last row
   tui->board_window = subwin(stdscr, Game_height(tui->game), Game_width(tui->game), 0, 0);
@@ -60,29 +62,30 @@ void TUI_init_curses(TUI *tui) {
 void render_cell(TUI *tui, const Cell *cell) {
   char c;
   if (cell->state == HIDDEN) {
-    wattr_on(tui->board_window, COLOR_PAIR(HIDDEN_COLOR), NULL);
+    wattr_on(tui->board_window, COLOR_PAIR(COLOR_HIDDEN), NULL);
     c = ' ';
   }
   else if (cell->state == FLAG) {
+    wattr_on(tui->board_window, COLOR_PAIR(COLOR_FLAG), NULL);
     c = 'F';
-    wattr_on(tui->board_window, COLOR_PAIR(FLAG_COLOR), NULL);
   }
   else if (cell->state == REVEALED) {
-    wattr_on(tui->board_window, COLOR_PAIR(1+cell->item), NULL);
     if (cell->item == EMPTY) {
-      c = ' ';
-    }
-    else if (Item_is_number(cell->item)) {
-      // int x = 1+cell->item;
-      // wattr_on(tui->board_window, COLOR_PAIR(x), NULL);
-      c = '0' + cell->item;
+      if (cell->num_adjacent_traps == 0) {
+        wattr_on(tui->board_window, COLOR_PAIR(COLOR_EMPTY), NULL);
+        c = ' ';
+      }
+      else {
+        wattr_on(tui->board_window, COLOR_PAIR(cell->num_adjacent_traps), NULL);
+        c = '0' + cell->num_adjacent_traps;
+      }
     }
     else if (cell->item == TREASURE) {
-      // wattr_on(tui->board_window, COLOR_PAIR(cell->item), NULL);
+      wattr_on(tui->board_window, COLOR_PAIR(COLOR_TREASURE), NULL);
       c = '$';
     }
     else if (cell->item == TRAP) {
-      // wattr_on(tui->board_window, COLOR_PAIR(cell->item), NULL);
+      wattr_on(tui->board_window, COLOR_PAIR(COLOR_TRAP), NULL);
       c = 'X';
     }
     else {
@@ -101,7 +104,7 @@ void TUI_render(TUI *tui) {
   wclear(tui->board_window);
   for(int y = Game_height(tui->game)-1; y >= 0; --y) {
     for(int x = 0; x < Game_width(tui->game); ++x) {
-      const Cell *cell = Game_get(tui->game, x, y);
+      const Cell *cell = Game_cell(tui->game, x, y);
       render_cell(tui, cell);
     }
     // wmove(tui->board_window, y, 0);
@@ -109,7 +112,7 @@ void TUI_render(TUI *tui) {
 
   // for(int r = 0; r < Game_height(tui->game); r++) {
   //   for(int c = 0; c < Game_width(tui->game); c++) {
-  //     const Cell *cell = Game_get(tui->game, r, c);
+  //     const Cell *cell = Game_cell(tui->game, r, c);
   //     render_cell(tui, cell);
       
   //     // wattr_off(tui->board_window, COLOR_PAIR(cell->item), NULL);
@@ -143,7 +146,7 @@ bool TUI_input(TUI *tui) {
     Game_reveal(tui->game, tui->cursor_x, tui->cursor_y);
   }
   else if (ch == 'f') {
-    Game_mark(tui->game, tui->cursor_x, tui->cursor_y);
+    Game_toggle_flag(tui->game, tui->cursor_x, tui->cursor_y);
   }
   return true;
 }

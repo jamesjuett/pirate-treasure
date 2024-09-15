@@ -35,7 +35,13 @@ void print_wide_letter(char c) {
 
 void print_cell_item(const Cell *cell) {
   if (cell->item == EMPTY) {
-    std::cout << "  ";
+    if (cell->num_adjacent_traps > 0) {
+      std::cout << colors[cell->num_adjacent_traps];
+      print_wide_digit(cell->num_adjacent_traps);
+    }
+    else {
+      std::cout << "  ";
+    }
   }
   else if (cell->item == TREASURE) {
     std::cout << "💰";
@@ -45,13 +51,11 @@ void print_cell_item(const Cell *cell) {
     std::cout << "☠️ ";
   }
   else {
-    assert(ONE <= cell->item && cell->item <= EIGHT);
-    std::cout << colors[cell->item];
-    print_wide_digit(cell->item);
+    assert(false);
   }
 }
 
-void Cell_print(const Cell *cell) {
+void print_cell(const Cell *cell) {
   if (cell->state == HIDDEN) {
     std::cout << "\u001b[48;5;7m" << "  ";
   }
@@ -79,8 +83,8 @@ void StreamUI_print(const StreamUI* ui, bool show_hidden) {
   for(int r = game->height-1; r >= 0; --r) {
     std::cout << std::setw(2) << r << " ";
     for(int c = 0; c < game->width; c++) {
-      const Cell *cell = Game_get(game, c, r);
-      Cell_print(cell);
+      const Cell *cell = Game_cell(game, c, r);
+      print_cell(cell);
     }
     std::cout << std::endl;
   }
@@ -112,7 +116,7 @@ void StreamUI_input(StreamUI *ui) {
   
   if(Game_in_bounds(game, x, y)) {
     if(flag) {
-      Game_mark(game, x, y);
+      Game_toggle_flag(game, x, y);
     }
     else {
       Game_reveal(game, x, y);

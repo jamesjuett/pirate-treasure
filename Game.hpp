@@ -7,19 +7,9 @@
 
 enum Item {
   EMPTY = 0,
-  ONE = 1,
-  TWO = 2,
-  THREE = 3,
-  FOUR = 4,
-  FIVE = 5,
-  SIX = 6,
-  SEVEN = 7,
-  EIGHT = 8,
-  TREASURE = 9,
-  TRAP = 10,
+  TREASURE = 1,
+  TRAP = 2,
 };
-
-bool Item_is_number(Item item);
 
 enum CellState {
   HIDDEN = 0,
@@ -29,11 +19,17 @@ enum CellState {
 
 // "Plain Old Data" (POD)
 struct Cell {
-  Item item;
-  CellState state;
   int x;
   int y;
+  Item item;
+  CellState state;
+  bool has_flag;
+  int num_adjacent_traps;
 };
+
+// Allow reading/writing cells to/from streams
+std::ostream &operator<<(std::ostream &out, const Cell &cell);
+std::istream &operator>>(std::istream &out, Cell &cell);
 
 struct Game {
   int width;
@@ -41,39 +37,58 @@ struct Game {
   int num_treasures;
   int num_traps;
   int treasures_found;
-  std::vector<std::vector<Cell>> cells;
   bool game_over;
-  // INVARIANT: items.size() == height
-  // INVARIANT: items[r].size() == width for any r
-  // INVARIANT: items contains exactly num_treasures TREASUREs
-  // INVARIANT: items contains exactly num_traps TRAPs
+
+  std::vector<std::vector<Cell>> cells;
+  // INVARIANT: cells.size() == width
+  // INVARIANT: cells[x].size() == height for any r
+  // INVARIANT: cells contains exactly num_treasures TREASUREs
+  // INVARIANT: cells contains exactly num_traps TRAPs
 };
 
-void Game_init(Game* game, int height, int width, int num_treasures, int num_traps);
+////////////////////////////////////////////////////////////
+// Declarations of "Public Interface" Game ADT Functions. //
+////////////////////////////////////////////////////////////
 
+// REQUIRES: width > 0, height > 0
+//           num_treasures + num_traps < width * height / 2
+// EFFECTS: Initializes a Game with the given width and height. The specified
+//          number of treasures and traps are placed in random locations.
+void Game_init(Game* game, int width, int height, int num_treasures, int num_traps);
+
+// EFFECTS: returns the width of the game board
 int Game_width(const Game *game);
+
+// EFFECTS: returns the height of the game board
 int Game_height(const Game *game);
+
+// EFFECTS: returns the number of treasures in the game
 int Game_num_treasures(const Game *game);
+
+// EFFECTS: returns the number of traps in the game
 int Game_num_traps(const Game *game);
 
-bool Game_in_bounds(const Game* game, int r, int c);
+// EFFECTS: Returns true if (x,y) is the position of a valid cell.
+bool Game_in_bounds(const Game* game, int x, int y);
 
-// REQUIRES: 0 <= r < Game_height(game) && 0 <= c < Game_width(game)
-const Cell * Game_get(const Game* game, int r, int c);
-Cell * Game_get(Game* game, int r, int c);
+// EFFECTS: Returns true if a TRAP has been revealed.
+bool Game_is_over(const Game* game);
 
-std::vector<Cell *> Game_neighbors(Game* game, Cell *cell, bool include_diagonals);
+// REQUIRES: Game_in_bounds(x,y)
+// EFFECTS: Returns a pointer to the Cell at (x,y). The Cell may
+//          not be modified through the pointer.
+const Cell * Game_cell(const Game* game, int x, int y);
 
-// REQUIRES: 0 <= r < Game_height(game) && 0 <= c < Game_width(game)
-// void Game_set(Game* game, int r, int c, Cell cell);
-
-// EFFECTS: Reveals the cell at (r, c), if it was not already revealed.
-//          Otherwise, does nothing. If a revealed cell is empty, all
+// REQUIRES: Game_in_bounds(x,y)
+// EFFECTS: Reveals the cell at (x,y), if it was not already revealed.
+//          Otherwise, does nothing. If an empty cell is revealed, all
 //          adjacent empty cells are also revealed.
-void Game_reveal(Game* game, int r, int c);
+void Game_reveal(Game* game, int x, int y);
 
-void Game_mark(Game* game, int r, int c);
-
-bool Game_is_game_over(const Game* game);
+// REQUIRES: Game_in_bounds(x,y)
+// EFFECTS: If the cell at (x,y) has the state HIDDEN, its state is
+//          changed to FLAG. If the state was FLAG, it is change to
+//          HIDDEN. If the state was REVEALED, nothing happens.
+void Game_toggle_flag(Game* game, int x, int y);
 
 #endif

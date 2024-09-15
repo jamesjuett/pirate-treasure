@@ -1,3 +1,6 @@
+#ifndef STREAM_UI_HPP
+#define STREAM_UI_HPP
+
 #include "Game.hpp"
 #include <iostream>
 
@@ -19,3 +22,5 @@ void StreamUI_init(StreamUI *ui, Game *game);
 void StreamUI_print(const StreamUI* ui, bool show_hidden);
 
 void StreamUI_input(StreamUI* ui);
+
+#endif
