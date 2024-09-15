@@ -36,7 +36,8 @@ struct Game {
   int height;
   int num_treasures;
   int num_traps;
-  int treasures_found;
+  int num_treasures_found;
+  int num_traps_found;
   bool game_over;
 
   std::vector<std::vector<Cell>> cells;
@@ -56,6 +57,10 @@ struct Game {
 //          number of treasures and traps are placed in random locations.
 void Game_init(Game* game, int width, int height, int num_treasures, int num_traps);
 
+void Game_init(Game* game, std::istream &in);
+
+void Game_save(const Game* game, std::ostream &out);
+
 // EFFECTS: returns the width of the game board
 int Game_width(const Game *game);
 
@@ -67,6 +72,12 @@ int Game_num_treasures(const Game *game);
 
 // EFFECTS: returns the number of traps in the game
 int Game_num_traps(const Game *game);
+
+// EFFECTS: returns the number of treasures in the game
+int Game_num_treasures_found(const Game *game);
+
+// EFFECTS: returns the number of traps in the game
+int Game_num_traps_found(const Game *game);
 
 // EFFECTS: Returns true if (x,y) is the position of a valid cell.
 bool Game_in_bounds(const Game* game, int x, int y);

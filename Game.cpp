@@ -43,7 +43,9 @@ void Game_init(Game* game, int width, int height, int num_treasures, int num_tra
   }
 
   game->num_treasures = num_treasures;
+  game->num_treasures_found = 0;
   game->num_traps = num_traps;
+  game->num_traps_found = 0;
   game->game_over = false;
 
   place_items(game, num_treasures, TREASURE);
@@ -64,15 +66,23 @@ void Game_init(Game *game, std::istream &is) {
       is >> game->cells[x][y];
     }
   }
+
+  game->num_treasures = count_items(game, TREASURE);
+  game->num_treasures_found = 0;
+  game->num_traps = count_items(game, TRAP);
+  game->num_traps_found = 0;
+  game->game_over = false;
+
+  check_invariants(game);
 }
 
-void Game_save(Game *game, std::ostream &out) {
-  out << game->width;
-  out << game->height;
+void Game_save(const Game *game, std::ostream &out) {
+  out << game->width << " " << game->height << std::endl;
   for(int x = 0; x < game->width; ++x) {
     for(int y = 0; y < game->height; ++y) {
-      out << game->cells[x][y];
+      out << game->cells[x][y] << " ";
     }
+    out << std::endl;
   }
 }
 
@@ -88,8 +98,16 @@ int Game_num_treasures(const Game *game) {
   return game->num_treasures;
 }
 
+int Game_num_treasures_found(const Game *game) {
+  return game->num_treasures_found;
+}
+
 int Game_num_traps(const Game *game) {
   return game->num_traps;
+}
+
+int Game_num_traps_found(const Game *game) {
+  return game->num_traps_found;
 }
 
 bool Game_in_bounds(const Game* game, int x, int y) {
@@ -122,12 +140,17 @@ void Game_reveal(Game* game, int x, int y) {
   cell->state = REVEALED;
 
   if (cell->item == TRAP) {
+    ++game->num_traps_found;
     game->game_over = true;
     return;
   }
   
   if (cell->item == TREASURE) {
-    ++game->treasures_found;
+    ++game->num_treasures_found;
+    if (game->num_treasures_found == game->num_treasures) {
+      game->game_over = true;
+      return;
+    }
   }
 
   // If an empty or treasure cell is revealed and has no adjacent traps,
@@ -231,7 +254,12 @@ int count_adjacent_items(Game *game, Cell *cell, Item item) {
 ///////////////////////////////////////////
 
 std::ostream &operator<<(std::ostream &out, const Cell &cell) {
-  out << cell.x << cell.y << cell.item << cell.state << cell.has_flag << cell.num_adjacent_traps;
+  out << cell.x << " "
+      << cell.y << " "
+      << cell.item << " "
+      << cell.state << " "
+      << cell.has_flag << " "
+      << cell.num_adjacent_traps;
   return out;
 }
 
@@ -241,4 +269,5 @@ std::istream &operator>>(std::istream &in, Cell &cell) {
   int state; in >> state; cell.state = static_cast<CellState>(state);
   in >> cell.has_flag;
   in >> cell.num_adjacent_traps;
+  return in;
 }

@@ -13,7 +13,6 @@ struct TUI {
 };
 
 void TUI_init(TUI *tui, Game *game);
-void TUI_render(TUI *tui);
 void TUI_play(TUI *tui);
 
 #endif
