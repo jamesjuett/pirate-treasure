@@ -47,7 +47,6 @@ void Game_init(Game* game, int width, int height, int num_treasures, int num_tra
   game->num_treasures_found = 0;
   game->num_traps = num_traps;
   game->num_traps_found = 0;
-  game->game_over = false;
 
   place_items(game, num_treasures, TREASURE);
   place_items(game, num_traps, TRAP);
@@ -72,7 +71,6 @@ void Game_init(Game *game, std::istream &is) {
   game->num_treasures_found = 0;
   game->num_traps = count_items(game, TRAP);
   game->num_traps_found = 0;
-  game->game_over = false;
 
   check_invariants(game);
 }
@@ -116,7 +114,7 @@ bool Game_in_bounds(const Game* game, int x, int y) {
 }
 
 bool Game_is_over(const Game *game) {
-  return game->game_over;
+  return game->num_traps_found > 0 || game->num_treasures_found == game->num_treasures;
 }
 
 Cell * Game_cell(Game* game, int x, int y) {
@@ -143,15 +141,13 @@ void Game_reveal(Game* game, int x, int y) {
 
   if (cell->item == TRAP) {
     ++game->num_traps_found;
-    game->game_over = true;
     return;
   }
   
   if (cell->item == TREASURE) {
     ++game->num_treasures_found;
-    if (game->num_treasures_found == game->num_treasures) {
-      game->game_over = true;
-      return;
+    if (Game_is_over(game)) {
+      return; // return early if we got all the treasures
     }
   }
 
@@ -248,8 +244,6 @@ void check_invariants(Game *game) {
 
   assert(0 <= game->num_treasures_found && game->num_treasures_found <= game->num_treasures);
   assert(0 <= game->num_traps_found && game->num_traps_found <= game->num_traps);
-  assert(game->num_traps_found == 0 || game->game_over);
-  assert(game->num_treasures_found < game->num_treasures || game->game_over);
 }
 
 int count_adjacent_items(Game *game, Cell *cell, Item item) {

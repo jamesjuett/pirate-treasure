@@ -38,7 +38,6 @@ struct Game {
   int num_traps;
   int num_treasures_found;
   int num_traps_found;
-  bool game_over;
 
   std::vector<std::vector<Cell>> cells;
   // INVARIANT: cells.size() == width
@@ -83,7 +82,8 @@ int Game_num_traps_found(const Game *game);
 // EFFECTS: Returns true if (x,y) is the position of a valid cell.
 bool Game_in_bounds(const Game* game, int x, int y);
 
-// EFFECTS: Returns true if a TRAP has been revealed.
+// EFFECTS: Returns true if a TRAP has been revealed or if all TREASUREs
+//          have been revealed.
 bool Game_is_over(const Game* game);
 
 // REQUIRES: Game_in_bounds(x,y)
