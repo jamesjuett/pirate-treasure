@@ -276,5 +276,8 @@ std::istream &operator>>(std::istream &in, Cell &cell) {
   int state; in >> state; cell.state = static_cast<CellState>(state);
   in >> cell.has_flag;
   in >> cell.num_adjacent_traps;
+  if (in) {
+    assert(item == EMPTY || item == TREASURE || item == TRAP);
+  }
   return in;
 }
