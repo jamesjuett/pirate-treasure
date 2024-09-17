@@ -20,9 +20,10 @@ void number_cells(Game *game);
 int count_adjacent_items(Game *game, Cell *cell, Item item);
 std::vector<Cell *> Game_neighbors(Game* game, Cell *cell);
 
-// Private version allows modification of cells via returned pointer.
+// A private overload of the Game_cell() function that may be used when the
+// Game is not const-qualified and allows modification of cells via the returned
+// (non-const-qualified) pointer.
 Cell * Game_cell(Game *game, int x, int y);
-
 
 
 /////////////////////////////////////////////////////////
