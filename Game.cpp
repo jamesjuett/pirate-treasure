@@ -235,9 +235,16 @@ void check_invariants(Game *game) {
   for(int x = 0; x < game->width; x++) {
     assert(game->cells[x].size() == game->height);
   }
+  assert(count_items(game, EMPTY) + count_items(game, TREASURE) + count_items(game, TRAP) == game->width * game->height);
   
   assert(count_items(game, TREASURE) == game->num_treasures);
   assert(count_items(game, TRAP) == game->num_traps);
+  assert(count_items(game, EMPTY) == game->width * game->height - game->num_treasures - game->num_traps);
+
+  assert(game->num_treasures_found <= game->num_treasures);
+  assert(game->num_traps_found <= game->num_traps);
+  assert(game->num_traps_found == 0 || game->game_over);
+  assert(game->num_treasures_found < game->num_treasures || game->game_over);
 }
 
 int count_adjacent_items(Game *game, Cell *cell, Item item) {
