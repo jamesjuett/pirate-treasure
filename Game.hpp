@@ -52,6 +52,7 @@ struct Game {
 ////////////////////////////////////////////////////////////
 
 // REQUIRES: width > 0, height > 0
+//           num_treasures > 0, num_traps >= 0
 //           num_treasures + num_traps < width * height / 2
 // EFFECTS: Initializes a Game with the given width and height. The specified
 //          number of treasures and traps are placed in random locations.

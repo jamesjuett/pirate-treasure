@@ -239,8 +239,9 @@ void check_invariants(Game *game) {
   }
   assert(count_items(game, EMPTY) + count_items(game, TREASURE) + count_items(game, TRAP) == game->width * game->height);
   
-  assert(0 < game->num_treasures && game->num_treasures < game->width * game->height / 2);
-  assert(0 < game->num_traps && game->num_traps < game->width * game->height / 2);
+  assert(0 < game->num_treasures);
+  assert(0 <= game->num_traps);
+  assert(game->num_treasures + game->num_traps < game->width * game->height / 2);
   assert(count_items(game, TREASURE) == game->num_treasures);
   assert(count_items(game, TRAP) == game->num_traps);
   assert(count_items(game, EMPTY) == game->width * game->height - game->num_treasures - game->num_traps);

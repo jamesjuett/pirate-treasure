@@ -42,25 +42,32 @@ TEST(test_game_init) {
 
 }
 
-TEST(test_game_no_treasures_or_traps) {
+TEST(test_game_no_traps) {
   Game game;
-  Game_init(&game, 5, 6, 0, 0);
+  Game_init(&game, 5, 6, 1, 0);
   ASSERT_EQUAL(Game_width(&game), 5);
   ASSERT_EQUAL(Game_height(&game), 6);
 
-  ASSERT_EQUAL(Game_num_treasures(&game), 0);
+  ASSERT_EQUAL(Game_num_treasures(&game), 1);
   ASSERT_EQUAL(Game_num_traps(&game), 0);
   ASSERT_EQUAL(Game_num_treasures_found(&game), 0);
   ASSERT_EQUAL(Game_num_traps_found(&game), 0);
   ASSERT_FALSE(Game_is_over(&game));
 
+  int num_treasures = 0;
   for(int x = 0; x < Game_width(&game); ++x) {
     for(int y = 0; y < Game_height(&game); ++y) {
-      ASSERT_EQUAL(Game_cell(&game, x, y)->item, EMPTY);
+      if (Game_cell(&game, x, y)->item == TREASURE) {
+        ++num_treasures;
+      }
+      else {
+        ASSERT_EQUAL(Game_cell(&game, x, y)->item, EMPTY);
+      }
       ASSERT_EQUAL(Game_cell(&game, x, y)->state, HIDDEN);
       ASSERT_EQUAL(Game_cell(&game, x, y)->num_adjacent_traps, 0);
     }
   }
+  ASSERT_EQUAL(num_treasures, 1);
 }
 
 TEST(test_game_bounds) {
