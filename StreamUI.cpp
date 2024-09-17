@@ -107,7 +107,7 @@ void handle_move_input(StreamUI *ui, std::string move) {
   std::string x_str;
   std::cin >> x_str;
   int x = x_str[0] - 'A';
-  int y;
+  int y = -1;
   std::cin >> y;
   if (Game_in_bounds(ui->game, x, y)) {
     if (move == "R") {

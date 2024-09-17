@@ -130,7 +130,7 @@ const Cell * Game_cell(const Game* game, int x, int y) {
 }
 
 void Game_reveal(Game* game, int x, int y) {
-  check_invariants(game)
+  check_invariants(game);
 
   Cell *cell = Game_cell(game, x, y);
 

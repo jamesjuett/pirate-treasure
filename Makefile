@@ -14,8 +14,11 @@ test: Game_tests.exe
 Game_tests.exe: Game_tests.cpp Game.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-pirate.exe: pirate.cpp TUI.cpp StreamUI.cpp Game.cpp
-	$(CXX) $(CXXFLAGS) $^ -o $@ -lcurses
+pirate.exe: pirate.cpp StreamUI.cpp Game.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+pirate-tui.exe: pirate.cpp TUI.cpp Game.cpp
+	$(CXX) $(CXXFLAGS) $^ -DUSE_TUI -lcurses -o $@
 
 .SUFFIXES:
 
