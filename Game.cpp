@@ -231,7 +231,7 @@ int count_items(Game *game, Item item) {
 
 void check_invariants(Game *game) {
   assert(game->cells.size() == game->width);
-  for(int x = 0; x < game->height; x++) {
+  for(int x = 0; x < game->width; x++) {
     assert(game->cells[x].size() == game->height);
   }
   
