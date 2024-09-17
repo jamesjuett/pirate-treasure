@@ -39,7 +39,7 @@ void Game_init(Game* game, int width, int height, int num_treasures, int num_tra
   );
   for(int x = 0; x < width; x++) {
     for(int y = 0; y < height; y++) {
-      game->cells[x][y] = {x, y, EMPTY, HIDDEN, false, 0};
+      *Game_cell(game, x, y) = {x, y, EMPTY, HIDDEN, false, 0};
     }
   }
 
@@ -64,7 +64,7 @@ void Game_init(Game *game, std::istream &is) {
   );
   for(int x = 0; x < game->width; ++x) {
     for(int y = 0; y < game->height; ++y) {
-      is >> game->cells[x][y];
+      is >> *Game_cell(game, x, y);
     }
   }
 
