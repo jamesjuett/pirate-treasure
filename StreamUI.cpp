@@ -169,6 +169,7 @@ void StreamUI_play(StreamUI *ui) {
               << " treasures."<< std::endl;
   }
   else {
+    std::cout << "Avast! Ye hit a trap!" << std::endl;
     std::cout << "Ye found " << Game_num_treasures_found(ui->game) << "/"
               << Game_num_treasures(ui->game) << " treasures." << std::endl;
   }
