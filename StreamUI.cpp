@@ -129,6 +129,10 @@ void handle_save_input(StreamUI *ui) {
   Game_save(ui->game, out);
 }
 
+void StreamUI_print_menu(const StreamUI *ui) {
+  std::cout << "Reveal/Flag = R/F <x> <y> | Save = S <filename> | Quit = q" << std::endl;
+}
+
 bool StreamUI_input(StreamUI *ui) {
   std::cout << "Enter move: ";
   std::string move;
@@ -157,6 +161,7 @@ bool StreamUI_input(StreamUI *ui) {
 
 void StreamUI_play(StreamUI *ui) {
   do {
+    StreamUI_print_menu(ui);
     StreamUI_print_board(ui, false);
     StreamUI_print_status(ui);
   }
