@@ -45,3 +45,12 @@ The game also provides an alternate keyboard interface. Compile with `make pirat
 - `Q`: Quit the game.
 
 (Saving via the keyboard interface is not currently supported.)
+
+## Unit Tests
+
+Unit tests for the `Game` ADT are provided in `Game_tests.cpp`. Compile and run them with:
+
+```console
+make Game_tests.exe
+./Game_tests.exe
+```
