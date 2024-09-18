@@ -37,14 +37,28 @@ The default game interface reads commands from `stdin`:
 
 ### Keyboard Interface
 
-The game also provides an alternate keyboard interface. Compile with `make pirate-keyboard.exe` and run with `./pirate-keyboard.exe` (and desired arguments, as described above).
+The game also provides an alternate keyboard interface.
+
+You may need to install the `ncurses` library to use the keyboard interface. On WSL/Ubuntu, you can install it with:
+
+```console
+sudo apt-get install libncurses5-dev
+```
+
+On macOS, you can install it with:
+
+```console
+brew install ncurses
+```
+
+Compile with `make pirate-keyboard.exe` and run with `./pirate-keyboard.exe` (and desired arguments, as described above).
 
 - `Arrow keys`: Move the cursor.
 - `Space`: Reveal the contents of the cell at the cursor.
 - `F`: Toggle the flag marker at the cursor.
 - `Q`: Quit the game.
 
-(Saving via the keyboard interface is not currently supported.)
+The keyboard interface is an unfinished proof-of-concept. Some features, such as detecting the end of the game or saving the game to a file are not yet implemented.
 
 ## Unit Tests
 

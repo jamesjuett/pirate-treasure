@@ -216,13 +216,11 @@ void number_cells(Game *game) {
   }
 }
 
-int count_items(Game *game, Item item) {
+int count_adjacent_items(Game *game, Cell *cell, Item item) {
   int count = 0;
-  for(int x = 0; x < game->width; x++) {
-    for(int y = 0; y < game->height; y++) {
-      if(Game_cell(game, x, y)->item == item) {
-        ++count;
-      }
+  for(const Cell *neighbor : Game_neighbors(game, cell)) {
+    if(neighbor->item == item) {
+      ++count;
     }
   }
   return count;
@@ -246,11 +244,13 @@ void check_invariants(Game *game) {
   assert(0 <= game->num_traps_found && game->num_traps_found <= game->num_traps);
 }
 
-int count_adjacent_items(Game *game, Cell *cell, Item item) {
+int count_items(Game *game, Item item) {
   int count = 0;
-  for(const Cell *neighbor : Game_neighbors(game, cell)) {
-    if(neighbor->item == item) {
-      ++count;
+  for(int x = 0; x < game->width; x++) {
+    for(int y = 0; y < game->height; y++) {
+      if(Game_cell(game, x, y)->item == item) {
+        ++count;
+      }
     }
   }
   return count;
