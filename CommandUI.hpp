@@ -5,12 +5,12 @@
 #include <iostream>
 
 
-struct StreamUI {
+struct CommandUI {
   Game *game;
 };
 
-void StreamUI_init(StreamUI *ui, Game *game);
+void CommandUI_init(CommandUI *ui, Game *game);
 
-void StreamUI_play(StreamUI* ui);
+void CommandUI_play(CommandUI* ui);
 
 #endif

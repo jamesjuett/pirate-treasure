@@ -1,4 +1,4 @@
-#include "StreamUI.hpp"
+#include "CommandUI.hpp"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -76,11 +76,11 @@ void print_cell(const Cell *cell, bool show_hidden) {
   std::cout << RESET_COLOR;
 }
 
-void StreamUI_init(StreamUI *ui, Game *game) {
+void CommandUI_init(CommandUI *ui, Game *game) {
   ui->game = game;
 }
 
-void StreamUI_print_board(const StreamUI* ui, bool show_hidden) {
+void CommandUI_print_board(const CommandUI* ui, bool show_hidden) {
   Game *game = ui->game;
   for(int r = game->height-1; r >= 0; --r) {
     std::cout << std::setw(2) << r << " ";
@@ -97,13 +97,13 @@ void StreamUI_print_board(const StreamUI* ui, bool show_hidden) {
   std::cout << std::endl;
 }
 
-void StreamUI_print_status(const StreamUI* ui) {
+void CommandUI_print_status(const CommandUI* ui) {
   std::cout << Game_num_treasures_found(ui->game)
             << "/" << Game_num_treasures(ui->game)
             << " treasures found." << std::endl;
 }
 
-void handle_move_input(StreamUI *ui, std::string move) {
+void handle_move_input(CommandUI *ui, std::string move) {
   std::string x_str;
   std::cin >> x_str;
   int x = x_str[0] - 'A';
@@ -122,18 +122,18 @@ void handle_move_input(StreamUI *ui, std::string move) {
   }
 }
 
-void handle_save_input(StreamUI *ui) {
+void handle_save_input(CommandUI *ui) {
   std::string filename;
   std::cin >> filename;
   std::ofstream out(filename);
   Game_save(ui->game, out);
 }
 
-void StreamUI_print_menu(const StreamUI *ui) {
+void CommandUI_print_menu(const CommandUI *ui) {
   std::cout << "Reveal/Flag = R/F <x> <y> | Save = S <filename> | Quit = q" << std::endl;
 }
 
-bool StreamUI_input(StreamUI *ui) {
+bool CommandUI_input(CommandUI *ui) {
   std::cout << "Enter move: ";
   std::string move;
   std::cin >> move;
@@ -159,16 +159,16 @@ bool StreamUI_input(StreamUI *ui) {
   return true;
 }
 
-void StreamUI_play(StreamUI *ui) {
+void CommandUI_play(CommandUI *ui) {
   do {
-    StreamUI_print_board(ui, false);
-    StreamUI_print_status(ui);
-    StreamUI_print_menu(ui);
+    CommandUI_print_board(ui, false);
+    CommandUI_print_status(ui);
+    CommandUI_print_menu(ui);
   }
-  while (!Game_is_over(ui->game) && StreamUI_input(ui));
+  while (!Game_is_over(ui->game) && CommandUI_input(ui));
 
 
-  StreamUI_print_board(ui, true);
+  CommandUI_print_board(ui, true);
   if (Game_num_treasures_found(ui->game) == Game_num_treasures(ui->game)) {
     std::cout << "Yarrr! Ye found all " << Game_num_treasures(ui->game)
               << " treasures."<< std::endl;

@@ -1,6 +1,6 @@
 #include "Game.hpp"
-#include "TUI.hpp"
-#include "StreamUI.hpp"
+#include "KeyboardUI.hpp"
+#include "CommandUI.hpp"
 #include <thread>
 #include <chrono>
 #include <fstream>
@@ -35,14 +35,14 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
-  #ifdef USE_TUI
-    TUI tui;
-    TUI_init(&tui, &game);
-    TUI_play(&tui);
+  #ifdef USE_KEYBOARD_UI
+    KeyboardUI keyboard_ui;
+    KeyboardUI_init(&keyboard_ui, &game);
+    KeyboardUI_play(&keyboard_ui);
   #else
-    StreamUI stream_ui;
-    StreamUI_init(&stream_ui, &game);
-    StreamUI_play(&stream_ui);
+    CommandUI command_ui;
+    CommandUI_init(&command_ui, &game);
+    CommandUI_play(&command_ui);
   #endif
   
 }
