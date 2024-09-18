@@ -161,8 +161,8 @@ bool StreamUI_input(StreamUI *ui) {
 
 void StreamUI_play(StreamUI *ui) {
   do {
-    StreamUI_print_menu(ui);
     StreamUI_print_board(ui, false);
+    StreamUI_print_menu(ui);
     StreamUI_print_status(ui);
   }
   while (!Game_is_over(ui->game) && StreamUI_input(ui));
