@@ -137,7 +137,7 @@ bool CommandUI_input(CommandUI *ui) {
   std::cout << "Enter move: ";
   std::string move;
   std::cin >> move;
-  if (move == "q") {
+  if (move == "Q") {
     return false;
   }
   else if (move == "S") {
