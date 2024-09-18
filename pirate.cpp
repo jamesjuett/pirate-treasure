@@ -11,8 +11,6 @@
 // Usage: pirate.exe filename
 //   If filename is provided, the game state is loaded from the file.
 
-// If the 
-
 int main(int argc, char *argv[]) {
 
   Game game;
